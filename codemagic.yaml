@@ -1,0 +1,46 @@
+workflows:
+  android-workflow:
+    name: Android Build
+    max_build_duration: 60
+    environment:
+      node: latest
+      java: 23
+    scripts:
+      - name: Install npm dependencies
+        script: npm install
+      - name: Set up local properties
+        script: echo "sdk.dir=$ANDROID_SDK_ROOT" > "$CM_BUILD_DIR/android/local.properties"
+      - name: Build Android release
+        script: cd android && ./gradlew assembleRelease
+    artifacts:
+      - android/app/build/outputs/**/*.apk
+      
+  ios-workflow:
+    name: iOS Build
+    max_build_duration: 60
+    environment:
+      node: latest
+      xcode: latest
+      cocoapods: default
+    scripts:
+      - name: Install npm dependencies
+        script: npm install
+      - name: Install CocoaPods dependencies
+        script: cd ios && pod install
+      - name: Build iOS release
+        script: xcodebuild -workspace ios/tankhahaplication.xcworkspace -scheme tankhahaplication -configuration Release
+    artifacts:
+      - build/ios/ipa/*.ipa
+
+  web-workflow:
+    name: Web Build
+    max_build_duration: 30
+    environment:
+      node: latest
+    scripts:
+      - name: Install dependencies
+        script: npm install
+      - name: Build web
+        script: npm run web:build
+    artifacts:
+      - build/web/*
