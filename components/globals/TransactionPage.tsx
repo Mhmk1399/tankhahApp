@@ -6,7 +6,8 @@ import {
   TouchableOpacity, 
   ScrollView, 
   StyleSheet,
-  Alert
+  Alert,
+  Pressable
 } from 'react-native';
 import AsyncStorage from '@react-native-async-storage/async-storage';
 import * as ImagePicker from 'expo-image-picker';
@@ -45,26 +46,39 @@ const TransactionsPage = () => {
   const fetchCategories = async () => {
     try {
       const token = await AsyncStorage.getItem('token');
-      const response = await fetch('YOUR_API_URL/api/categories', {
+      if (!token) {
+        Alert.alert('خطا', 'لطفا دوباره وارد شوید');
+        return;
+      }
+
+      console.log('Fetching categories...');
+      const response = await fetch('https://tankhah.vercel.app/api/categories', {
         headers: {
           'Authorization': `Bearer ${token}`
         }
       });
+      
+      const data = await response.json();
+      console.log('Categories response:', data);
+
       if (response.ok) {
-        const data = await response.json();
         setCategories(data.categories);
+      } else {
+        throw new Error(data.message || 'خطا در دریافت دسته‌بندی‌ها');
       }
-      setLoading(false);
     } catch (error) {
-      console.error('Error fetching categories:', error);
+      console.error('Fetch categories error:', error);
+      Alert.alert('خطا', 'مشکلی در دریافت دسته‌بندی‌ها پیش آمد');
+    } finally {
       setLoading(false);
     }
-  };
+};
+
 
   const handleAddCategory = async (newCategory: { name: string; color: string }) => {
     try {
       const token = await AsyncStorage.getItem('token');
-      const response = await fetch('YOUR_API_URL/api/categories', {
+      const response = await fetch('https://tankhah.vercel.app/api/categories', {
         method: 'POST',
         headers: {
           'Content-Type': 'application/json',
@@ -86,7 +100,13 @@ const TransactionsPage = () => {
 
   const handleSubmit = async () => {
     try {
+      if (!formData.amount || !formData.category._id) {
+        Alert.alert('خطا', 'لطفا مبلغ و دسته‌بندی را وارد کنید');
+        return;
+      }
+
       const numericAmount = Number(formData.amount.replace(/,/g, ''));
+      console.log('Amount:', numericAmount);
       
       const transactionData = {
         amount: numericAmount,
@@ -95,9 +115,15 @@ const TransactionsPage = () => {
         date: new Date(),
         image: formData.image
       };
+      console.log('Transaction data:', JSON.stringify(transactionData));
 
       const token = await AsyncStorage.getItem('token');
-      const response = await fetch('YOUR_API_URL/api/transactions/outcomes', {
+      if (!token) {
+        Alert.alert('خطا', 'لطفا دوباره وارد شوید');
+        return;
+      }
+
+      const response = await fetch('https://tankhah.vercel.app/api/transactions', {
         method: 'POST',
         headers: {
           'Content-Type': 'application/json',
@@ -105,6 +131,9 @@ const TransactionsPage = () => {
         },
         body: JSON.stringify(transactionData),
       });
+
+      const responseData = await response.json();
+      console.log('Response:', responseData);
 
       if (response.ok) {
         Alert.alert('موفق', 'تراکنش با موفقیت ثبت شد');
@@ -115,11 +144,15 @@ const TransactionsPage = () => {
           image: '',
           date: new Date(),
         });
+      } else {
+        throw new Error(responseData.message || 'خطا در ثبت تراکنش');
       }
     } catch (error) {
-      Alert.alert('خطا', 'مشکلی در ثبت تراکنش پیش آمد');
+      console.error('Submit error:', error);
+      Alert.alert('خطا', error instanceof Error ? error.message : 'مشکلی در ثبت تراکنش پیش آمد');
     }
-  };
+};
+
 
   const pickImage = async () => {
     const result = await ImagePicker.launchImageLibraryAsync({
@@ -179,10 +212,12 @@ const TransactionsPage = () => {
           style={styles.addCategoryButton}
           onPress={() => setIsCategoryModalOpen(true)}
         >
+          <Pressable>
           <Text style={styles.addCategoryButtonText}>
             {formData.category.name || "انتخاب دسته‌بندی"}
           </Text>
           <Ionicons name="chevron-down" size={24} color="#fff" />
+          </Pressable>
         </TouchableOpacity>
 
         <TouchableOpacity 
@@ -202,8 +237,7 @@ const TransactionsPage = () => {
     </ScrollView>
   );
 
-};const styles = StyleSheet.create({  container: {
-    flex: 1,
+};const styles = StyleSheet.create({  container: {    flex: 1,
     backgroundColor: '#fff',
     padding: 16,
   },
