@@ -27,6 +27,7 @@
         <category android:name="android.intent.category.BROWSABLE"/>
         <data android:scheme="myapp"/>
         <data android:scheme="com.anonymous.tankhahaplication"/>
+        <data android:scheme="exp+tankhah"/>
       </intent-filter>
     </activity>
   </application>
