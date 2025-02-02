@@ -1,5 +1,15 @@
-import React, { useState } from 'react';
-import { View, Image, StyleSheet, Dimensions, TouchableOpacity, Animated } from 'react-native';
+import React, { useState, useRef } from 'react';
+import { 
+  View, 
+  Image, 
+  StyleSheet, 
+  Dimensions, 
+  TouchableOpacity, 
+  Animated,
+  ScrollView,
+  NativeSyntheticEvent,
+  NativeScrollEvent 
+} from 'react-native';
 import { Ionicons } from '@expo/vector-icons';
 
 const { width } = Dimensions.get('window');
@@ -11,17 +21,20 @@ interface OnboardingSliderProps {
 export const OnboardingSlider: React.FC<OnboardingSliderProps> = ({ onComplete }) => {
   const [currentIndex, setCurrentIndex] = useState(0);
   const fadeAnim = new Animated.Value(0);
+  const scrollViewRef = useRef<ScrollView>(null);
 
   const slides = [
-    require('../../assets/111.jpg'),
-    require('../../assets/112.jpg'),
-    require('../../assets/113.jpg'),
+    require('../../assets/images/test2.jpg'),
+    require('../../assets/images/test3.jpg'),
+    require('../../assets/images/test1.jpg'),
   ];
 
-  const handleNext = () => {
-    if (currentIndex < slides.length - 1) {
-      setCurrentIndex(prev => prev + 1);
-    } else {
+  const handleScroll = (event: NativeSyntheticEvent<NativeScrollEvent>) => {
+    const contentOffset = event.nativeEvent.contentOffset.x;
+    const index = Math.round(contentOffset / width);
+    setCurrentIndex(index);
+    
+    if (index === slides.length - 1) {
       Animated.timing(fadeAnim, {
         toValue: 1,
         duration: 800,
@@ -30,18 +43,42 @@ export const OnboardingSlider: React.FC<OnboardingSliderProps> = ({ onComplete }
     }
   };
 
+  const handleNext = () => {
+    if (currentIndex < slides.length - 1) {
+      scrollViewRef.current?.scrollTo({
+        x: (currentIndex + 1) * width,
+        animated: true
+      });
+    }
+  };
+
   const handlePrevious = () => {
     if (currentIndex > 0) {
-      setCurrentIndex(prev => prev - 1);
+      scrollViewRef.current?.scrollTo({
+        x: (currentIndex - 1) * width,
+        animated: true
+      });
     }
   };
 
   return (
     <View style={styles.container}>
-      <Image
-        source={slides[currentIndex]}
-        style={styles.image}
-      />
+      <ScrollView
+        ref={scrollViewRef}
+        horizontal
+        pagingEnabled
+        showsHorizontalScrollIndicator={false}
+        onScroll={handleScroll}
+        scrollEventThrottle={16}
+      >
+        {slides.map((slide, index) => (
+          <Image
+            key={index}
+            source={slide}
+            style={styles.image}
+          />
+        ))}
+      </ScrollView>
       
       {currentIndex < slides.length - 1 ? (
         <View style={styles.navigationContainer}>
@@ -89,12 +126,13 @@ const styles = StyleSheet.create({
   },
   navigationContainer: {
     position: 'absolute',
-    bottom: 40,
+    top: '50%',
     left: 0,
     right: 0,
     flexDirection: 'row',
     justifyContent: 'space-between',
     paddingHorizontal: 20,
+    transform: [{ translateY: -25 }],
   },
   navButton: {
     width: 50,
