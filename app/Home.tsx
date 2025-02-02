@@ -14,6 +14,7 @@ import  AddRequest  from '../components/globals/AddRequest';
 import ManageRequests from '../components/globals/ManageRequests';
 import TransactionList from "@/components/globals/TransactionList";
 import TransactionsPage from "@/components/globals/TransactionPage";
+import OnboardingSlider from "@/components/globals/OnboardingSlider";
 const SCREEN_WIDTH = Dimensions.get("window").width;
 
 const Home = () => {
@@ -75,7 +76,7 @@ const Home = () => {
       case "manageRequests":
         return <ManageRequests />;
       default:
-        return <Text>Welcome Screen</Text>;
+        return <OnboardingSlider onComplete={() => setActiveComponent(null)} />;
     }
   };
 
