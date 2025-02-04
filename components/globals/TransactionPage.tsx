@@ -12,6 +12,7 @@ import {
 import AsyncStorage from "@react-native-async-storage/async-storage";
 import * as ImagePicker from "expo-image-picker";
 import { Ionicons } from "@expo/vector-icons";
+import { Loading } from "./loading";
 
 interface NewCategoryModalProps {
   isVisible: boolean;
@@ -112,7 +113,7 @@ interface TransactionForm {
 }
 
 const TransactionsPage = () => {
-  const [loading, setLoading] = useState(true);
+  const [isLoading, setIsLoading] = useState(false);
   const [isCategoryModalOpen, setIsCategoryModalOpen] = useState(false);
   const [categories, setCategories] = useState<Category[]>([]);
   const [isNewCategoryModalOpen, setIsNewCategoryModalOpen] = useState(false);
@@ -166,31 +167,33 @@ const TransactionsPage = () => {
   const fetchCategories = async () => {
     try {
       const token = await AsyncStorage.getItem("token");
+      console.log(token);
       if (!token) {
         Alert.alert("خطا", "لطفا دوباره وارد شوید");
         return;
       }
-
-      const response = await fetch(
-        "https://tankhah.vercel.app/api/categories",
-        {
-          headers: {
-            Authorization: `Bearer ${token}`,
-          },
+      try {
+        const response = await fetch(
+          "https://tankhah.vercel.app/api/categories",
+          {
+            headers: {
+              Authorization: `Bearer ${token}`,
+            },
+          }
+        );
+        const data = await response.json();
+        if (response.ok) {
+          setCategories(data.categories);
+        } else {
+          throw new Error(data.message || "خطا در دریافت دسته‌بندی‌ها");
         }
-      );
-
-      const data = await response.json();
-
-      if (response.ok) {
-        setCategories(data.categories);
-      } else {
-        throw new Error(data.message || "خطا در دریافت دسته‌بندی‌ها");
+      } catch (error) {
+        console.error("Error fetching categories:", error);
       }
     } catch (error) {
       Alert.alert("خطا", "مشکلی در دریافت دسته‌بندی‌ها پیش آمد");
     } finally {
-      setLoading(false);
+      setIsLoading(false);
     }
   };
 
@@ -273,12 +276,8 @@ const TransactionsPage = () => {
     }
   };
 
-  if (loading) {
-    return (
-      <View style={styles.loadingContainer}>
-        <Text>در حال بارگذاری...</Text>
-      </View>
-    );
+  if (isLoading) {
+    return <Loading visible={isLoading} />;
   }
 
   return (
@@ -584,22 +583,22 @@ const styles = StyleSheet.create({
   },
   categoryInput: {
     borderWidth: 1,
-    borderColor: '#ddd',
+    borderColor: "#ddd",
     borderRadius: 8,
     padding: 12,
     fontSize: 16,
-    textAlign: 'right',
+    textAlign: "right",
     marginBottom: 16,
   },
   colorSectionTitle: {
     fontSize: 16,
-    fontWeight: '600',
+    fontWeight: "600",
     marginBottom: 12,
-    color: '#333',
+    color: "#333",
   },
   colorGrid: {
-    flexDirection: 'row',
-    flexWrap: 'wrap',
+    flexDirection: "row",
+    flexWrap: "wrap",
     gap: 12,
     marginBottom: 20,
   },
@@ -610,23 +609,23 @@ const styles = StyleSheet.create({
   },
   selectedColorOption: {
     borderWidth: 3,
-    borderColor: '#fff',
-    shadowColor: '#000',
+    borderColor: "#fff",
+    shadowColor: "#000",
     shadowOffset: { width: 0, height: 2 },
     shadowOpacity: 0.25,
     shadowRadius: 3.84,
     elevation: 5,
   },
   createButton: {
-    backgroundColor: '#1a73e8',
+    backgroundColor: "#1a73e8",
     padding: 16,
     borderRadius: 8,
-    alignItems: 'center',
+    alignItems: "center",
   },
   createButtonText: {
-    color: '#fff',
+    color: "#fff",
     fontSize: 16,
-    fontWeight: '600',
+    fontWeight: "600",
   },
 });
 

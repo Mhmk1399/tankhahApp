@@ -7,32 +7,30 @@ import {
   StyleSheet,
   ScrollView,
   ActivityIndicator,
-  Switch,
 } from "react-native";
-import * as SecureStore from "expo-secure-store";
-import AsyncStorage from "@react-native-async-storage/async-storage";
-import { useRouter } from "expo-router";
+import { useNavigation } from "@react-navigation/native";
 
 interface FormErrors {
-  phoneNumber?: string;
+  name?: string;
   password?: string;
+  phoneNumber?: string;
 }
 
-export default function LoginScreen() {
+export default function RegisterScreen() {
   const [phoneNumber, setPhoneNumber] = useState("");
+  const [name, setName] = useState("");
   const [password, setPassword] = useState("");
   const [error, setError] = useState("");
   const [errors, setErrors] = useState<FormErrors>({});
   const [loading, setLoading] = useState(false);
-  const [rememberMe, setRememberMe] = useState(false);
-  const navigation = useRouter();
+  const navigation = useNavigation();
   const API_URL = "https://tankhah.vercel.app/api/auth";
 
   const validateForm = () => {
     const newErrors: FormErrors = {};
 
-    if (!phoneNumber.match(/^09[0-9]{9}$/)) {
-      newErrors.phoneNumber = "شماره موبایل باید ۱۱ رقم و با ۰۹ شروع شود";
+    if (name.length < 3) {
+      newErrors.name = "نام باید حداقل ۳ کاراکتر باشد";
     }
 
     const passwordRegex = /^(?=.*[a-z])(?=.*[A-Z])(?=.*\d).{6,}$/;
@@ -40,52 +38,40 @@ export default function LoginScreen() {
       newErrors.password = "رمز عبور باید شامل حروف بزرگ، کوچک و اعداد باشد";
     }
 
+    if (!phoneNumber.match(/^09[0-9]{9}$/)) {
+      newErrors.phoneNumber = "شماره موبایل باید ۱۱ رقم و با ۰۹ شروع شود";
+    }
+
     setErrors(newErrors);
     return Object.keys(newErrors).length === 0;
   };
 
   const handleSubmit = async () => {
-    if (!validateForm()) return;
-
+    if (!validateForm()) {
+      return;
+    }
     setLoading(true);
     setError("");
 
     try {
-      const res = await fetch(`${API_URL}/login`, {
+      const res = await fetch(API_URL, {
         method: "POST",
         headers: {
           "Content-Type": "application/json",
         },
-        body: JSON.stringify({ phoneNumber, password }),
+        body: JSON.stringify({ phoneNumber, name, password }),
       });
 
       const data = await res.json();
 
       if (res.ok) {
-        navigation.navigate("Home" as never);
-        try {
-          const tokenData = {
-            token: data.token,
-            expiresAt: new Date(Date.now() + 72 * 60 * 60 * 1000).toISOString(),
-          };
-
-          await AsyncStorage.setItem("token", JSON.stringify(tokenData));
-          console.log("Token stored successfully with expiration!");
-        } catch (error) {
-          console.error("Error storing token:", error);
-        }
-
-        // Store token securely
-        await SecureStore.setItemAsync("userToken", data.token);
-
-        // If remember me is checked, store additional flag
-        if (rememberMe) {
-          await SecureStore.setItemAsync("rememberMe", "true");
-        }
+        navigation.navigate("LoginScreen" as never);
+      } else {
+        setError(data.message);
       }
     } catch (err) {
       console.error(err);
-      setError("ورود به سیستم با مشکل مواجه شد");
+      setError("خطا در ثبت نام");
     } finally {
       setLoading(false);
     }
@@ -94,22 +80,19 @@ export default function LoginScreen() {
   return (
     <ScrollView contentContainerStyle={styles.container}>
       <View style={styles.formContainer}>
-        <Text style={styles.title}>ورود به حساب کاربری</Text>
+        <Text style={styles.title}>ساخت حساب کاربری</Text>
 
-        {error && <Text style={styles.errorText}>{error}</Text>}
+        {error ? <Text style={styles.errorText}>{error}</Text> : null}
 
         <View style={styles.inputContainer}>
           <TextInput
             style={styles.input}
-            placeholder="شماره همراه خود را وارد کنید"
-            value={phoneNumber}
-            onChangeText={setPhoneNumber}
-            keyboardType="phone-pad"
+            placeholder="نام کاربری"
+            value={name}
+            onChangeText={setName}
             textAlign="right"
           />
-          {errors.phoneNumber && (
-            <Text style={styles.fieldError}>{errors.phoneNumber}</Text>
-          )}
+          {errors.name && <Text style={styles.fieldError}>{errors.name}</Text>}
 
           <TextInput
             style={styles.input}
@@ -122,19 +105,19 @@ export default function LoginScreen() {
           {errors.password && (
             <Text style={styles.fieldError}>{errors.password}</Text>
           )}
-        </View>
 
-        <View style={styles.rememberContainer}>
-          <Switch value={rememberMe} onValueChange={setRememberMe} />
-          <Text style={styles.rememberText}>مرا به خاطر بسپار</Text>
+          <TextInput
+            style={styles.input}
+            placeholder="شماره همراه"
+            value={phoneNumber}
+            onChangeText={setPhoneNumber}
+            keyboardType="phone-pad"
+            textAlign="right"
+          />
+          {errors.phoneNumber && (
+            <Text style={styles.fieldError}>{errors.phoneNumber}</Text>
+          )}
         </View>
-
-        <TouchableOpacity
-          onPress={() => navigation.navigate("ForgotPassword" as never)}
-          style={styles.forgotPassword}
-        >
-          <Text style={styles.linkText}>فراموشی رمز عبور</Text>
-        </TouchableOpacity>
 
         <TouchableOpacity
           style={[styles.button, loading && styles.buttonDisabled]}
@@ -144,15 +127,15 @@ export default function LoginScreen() {
           {loading ? (
             <ActivityIndicator color="white" />
           ) : (
-            <Text style={styles.buttonText}>ورود به سیستم</Text>
+            <Text style={styles.buttonText}>ثبت نام</Text>
           )}
         </TouchableOpacity>
 
         <TouchableOpacity
-          onPress={() => navigation.navigate("Home" as never)}
-          style={styles.registerLink}
+          onPress={() => navigation.navigate("LoginScreen" as never)}
+          style={styles.loginLink}
         >
-          <Text style={styles.linkText}>ثبت نام</Text>
+          <Text style={styles.loginLinkText}>ورود به حساب کاربری</Text>
         </TouchableOpacity>
       </View>
     </ScrollView>
@@ -165,19 +148,8 @@ const styles = StyleSheet.create({
     justifyContent: "center",
     backgroundColor: "#f5f5f5",
     padding: 50,
-    position: "relative", // Ensure the background layer is in the correct order
-  },
-  lottieBackground: {
-    position: "absolute", // This will make sure the Lottie animation is behind the form
-    top: 10,
-    left: 10,
-    right: 10,
-    bottom: 10,
-    inset: 10,
-    zIndex: -1, // Ensures the form is on top of the animation
   },
   formContainer: {
-    backgroundColor: "transparent",
     borderRadius: 15,
     padding: 20,
     shadowColor: "#000",
@@ -210,22 +182,11 @@ const styles = StyleSheet.create({
     borderWidth: 1,
     borderColor: "#ddd",
   },
-  rememberContainer: {
-    flexDirection: "row",
-    alignItems: "center",
-    justifyContent: "flex-end",
-    marginBottom: 10,
-  },
-  rememberText: {
-    marginRight: 8,
-    fontSize: 14,
-  },
   button: {
     backgroundColor: "#2563eb",
     padding: 15,
     borderRadius: 8,
     alignItems: "center",
-    marginTop: 10,
   },
   buttonDisabled: {
     backgroundColor: "#93c5fd",
@@ -244,17 +205,12 @@ const styles = StyleSheet.create({
     color: "#ef4444",
     fontSize: 12,
     marginTop: 2,
-    textAlign: "right",
   },
-  forgotPassword: {
-    alignItems: "flex-start",
-    marginBottom: 15,
-  },
-  registerLink: {
+  loginLink: {
     marginTop: 15,
     alignItems: "center",
   },
-  linkText: {
+  loginLinkText: {
     color: "#2563eb",
     fontSize: 14,
   },
