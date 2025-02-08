@@ -35,10 +35,7 @@ const TransactionList = () => {
   const [selectedTransaction, setSelectedTransaction] =
     useState<Transaction | null>(null);
   const [isDateModalOpen, setDateModalOpen] = useState(false);
-  const [dateRange, setDateRange] = useState<[Date | null, Date | null]>([
-    null,
-    null,
-  ]);
+ 
   const [isFilterModalOpen, setIsFilterModalOpen] = useState(false);
   const [filterOptions, setFilterOptions] = useState<FilterOptions>({
     startDate: null,
@@ -74,11 +71,17 @@ const TransactionList = () => {
   const fetchTransactions = async () => {
     try {
       const token = await AsyncStorage.getItem("token");
+      if (!token) {
+        console.error("Token not found");
+        return;
+      }
+      const tokenData = JSON.parse(token);
+      const actualToken = tokenData.token;
       const response = await fetch(
         "https://tankhah.vercel.app/api/transactions",
         {
           headers: {
-            Authorization: `Bearer ${token}`,
+            Authorization: `Bearer ${actualToken}`,
           },
         }
       );
@@ -87,6 +90,7 @@ const TransactionList = () => {
       setOriginalTransactions(data); // Store original data
 
     } catch (error) {
+      console.log("Error fetching transactions:", error);
       console.error("Error fetching transactions:", error);
     }
   };
@@ -222,26 +226,32 @@ const styles = StyleSheet.create({
   container: {
     direction: "rtl",
     flex: 1,
-    backgroundColor: "#F8FAFC",
+    backgroundColor: "#fffff",
+    padding:20,
+    marginBottom: 50
+    
   },
   header: {
     flexDirection: "row",
     justifyContent: "space-between",
     alignItems: "center",
-    padding: 16,
+    padding: 20,
     backgroundColor: "white",
     borderBottomWidth: 1,
     borderBottomColor: "#E2E8F0",
+   
   },
   title: {
-    fontSize: 20,
+    fontSize: 24,
     fontWeight: "bold",
     color: "#1E293B",
+    fontFamily: "IRANSans",
   },
   filterButton: {
     backgroundColor: "#4361ee",
-    padding: 10,
+    padding: 12,
     borderRadius: 12,
+    elevation: 3,
   },
   listContainer: {
     padding: 16,
@@ -249,79 +259,123 @@ const styles = StyleSheet.create({
   transactionCard: {
     backgroundColor: "white",
     borderRadius: 16,
-    padding: 16,
-    marginBottom: 12,
+    padding: 20,
+    marginBottom: 16,
     shadowColor: "#000",
-    shadowOffset: { width: 0, height: 2 },
-    shadowOpacity: 0.05,
-    shadowRadius: 8,
-    elevation: 2,
+    shadowOffset: { width: 0, height: 4 },
+    shadowOpacity: 0.1,
+    shadowRadius: 12,
+    elevation: 4,
+    borderWidth: 1,
+    borderColor: "#F1F5F9",
   },
   transactionHeader: {
     flexDirection: "row",
     justifyContent: "space-between",
     alignItems: "center",
-    marginBottom: 8,
+    marginBottom: 12,
   },
   date: {
-    fontSize: 14,
+    fontSize: 15,
     color: "#64748B",
+    fontFamily: "IRANSans",
   },
   amount: {
-    fontSize: 16,
+    fontSize: 18,
     fontWeight: "bold",
     color: "#334155",
+    fontFamily: "IRANSans",
   },
   description: {
-    fontSize: 15,
+    fontSize: 16,
     color: "#475569",
     textAlign: "right",
+    lineHeight: 24,
+    fontFamily: "IRANSans",
   },
   modalOverlay: {
     flex: 1,
-    backgroundColor: "rgba(0, 0, 0, 0.5)",
+    backgroundColor: "rgba(0, 0, 0, 0.6)",
     justifyContent: "center",
     alignItems: "center",
   },
   modalContent: {
     backgroundColor: "white",
-    borderRadius: 20,
-    padding: 24,
+    borderRadius: 24,
+    padding: 28,
     width: "90%",
     maxWidth: 400,
+    elevation: 8,
+    shadowColor: "#000",
+    shadowOffset: { width: 0, height: 8 },
+    shadowOpacity: 0.25,
+    shadowRadius: 16,
   },
   modalTitle: {
-    fontSize: 20,
+    fontSize: 24,
     fontWeight: "bold",
     textAlign: "center",
-    marginBottom: 20,
+    marginBottom: 24,
     color: "#1E293B",
+    fontFamily: "IRANSans",
+    borderBottomWidth: 2,
+    borderBottomColor: "#E2E8F0",
+    paddingBottom: 16,
   },
   modalField: {
-    marginBottom: 16,
+    marginBottom: 20,
+    backgroundColor: "#F8FAFC",
+    padding: 16,
+    borderRadius: 12,
+    borderWidth: 1,
+    borderColor: "#E2E8F0",
   },
   modalLabel: {
-    fontSize: 14,
+    fontSize: 16,
     color: "#64748B",
-    marginBottom: 4,
+    marginBottom: 8,
+    fontFamily: "IRANSans",
   },
   modalValue: {
-    fontSize: 16,
+    fontSize: 18,
     color: "#334155",
-    fontWeight: "500",
+    fontWeight: "600",
+    fontFamily: "IRANSans",
   },
   emptyState: {
     flex: 1,
     justifyContent: "center",
     alignItems: "center",
-    padding: 20,
+    padding: 32,
+    marginTop: 100,
   },
   emptyText: {
-    fontSize: 16,
+    fontSize: 18,
     color: "#64748B",
     textAlign: "center",
+    fontFamily: "IRANSans",
+    lineHeight: 28,
   },
+  closeButton: {
+    position: 'absolute',
+    top: 16,
+    left: 16,
+    padding: 8,
+  },
+  closeIcon: {
+    fontSize: 24,
+    color: '#64748B',
+  },
+  modalActions: {
+    marginTop: 24,
+    borderTopWidth: 1,
+    borderTopColor: '#E2E8F0',
+    paddingTop: 16,
+    flexDirection: 'row',
+    justifyContent: 'flex-end',
+  }
 });
+
 
 export default TransactionList;
 

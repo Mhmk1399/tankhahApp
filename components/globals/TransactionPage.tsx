@@ -13,6 +13,7 @@ import AsyncStorage from "@react-native-async-storage/async-storage";
 import * as ImagePicker from "expo-image-picker";
 import { Ionicons } from "@expo/vector-icons";
 import { Loading } from "./loading";
+import Toast from "react-native-toast-message";
 
 interface NewCategoryModalProps {
   isVisible: boolean;
@@ -141,13 +142,21 @@ const TransactionsPage = () => {
   }) => {
     try {
       const token = await AsyncStorage.getItem("token");
+      if (!token) {
+        Alert.alert("خطا", "لطفا وارد حساب کاربری خود شوید");
+        return;
+      }
+
+      const tokenData = JSON.parse(token);
+      const actualToken = tokenData.token;
+      
       const response = await fetch(
         "https://tankhah.vercel.app/api/categories",
         {
           method: "POST",
           headers: {
             "Content-Type": "application/json",
-            Authorization: `Bearer ${token}`,
+            Authorization: `Bearer ${actualToken}`,
           },
           body: JSON.stringify(newCategory),
         }
@@ -167,35 +176,43 @@ const TransactionsPage = () => {
   const fetchCategories = async () => {
     try {
       const token = await AsyncStorage.getItem("token");
-      console.log(token);
       if (!token) {
-        Alert.alert("خطا", "لطفا دوباره وارد شوید");
-        return;
+        throw new Error("لطفا دوباره وارد شوید");
       }
-      try {
-        const response = await fetch(
-          "https://tankhah.vercel.app/api/categories",
-          {
-            headers: {
-              Authorization: `Bearer ${token}`,
-            },
-          }
-        );
-        const data = await response.json();
-        if (response.ok) {
-          setCategories(data.categories);
-        } else {
-          throw new Error(data.message || "خطا در دریافت دسته‌بندی‌ها");
+  
+      // Parse the stored token object
+      const tokenData = JSON.parse(token);
+      const actualToken = tokenData.token;
+  
+      const response = await fetch(
+        "https://tankhah.vercel.app/api/categories",
+        {
+          headers: {
+            Authorization: `Bearer ${actualToken}`,
+            'Content-Type': 'application/json'
+          },
         }
-      } catch (error) {
-        console.error("Error fetching categories:", error);
+      );
+  
+      const data = await response.json();
+      
+      if (response.ok && data.success) {
+        setCategories(data.categories);
+      } else {
+        throw new Error(data.error || "خطا در دریافت دسته‌بندی‌ها");
       }
     } catch (error) {
-      Alert.alert("خطا", "مشکلی در دریافت دسته‌بندی‌ها پیش آمد");
+      console.error("Error fetching categories:", error);
+      Toast.show({
+        type: 'error',
+        text1: 'خطا',
+        text2: error instanceof Error ? error.message : 'An unknown error occurred',
+        position: 'bottom'
+      });
     } finally {
       setIsLoading(false);
     }
-  };
+  };  
 
   const handleCategorySelect = (category: Category) => {
     setFormData((prev) => ({
@@ -217,6 +234,8 @@ const TransactionsPage = () => {
         Alert.alert("خطا", "لطفا دوباره وارد شوید");
         return;
       }
+      const tokenData = JSON.parse(token);
+      const actualToken = tokenData.token;
 
       const numericAmount = Number(formData.amount.replace(/,/g, ""));
 
@@ -234,7 +253,7 @@ const TransactionsPage = () => {
           method: "POST",
           headers: {
             "Content-Type": "application/json",
-            Authorization: `Bearer ${token}`,
+            Authorization: `Bearer ${actualToken}`,
           },
           body: JSON.stringify(transactionData),
         }
@@ -560,20 +579,24 @@ const styles = StyleSheet.create({
     padding: 15,
     borderRadius: 12,
     marginBottom: 8,
+    
     backgroundColor: "#f8f9fa",
   },
   categoryItemContent: {
     flexDirection: "row",
+    
     alignItems: "center",
   },
   categoryColor: {
     width: 16,
     height: 16,
+
     borderRadius: 8,
     marginRight: 12,
   },
   categoryName: {
     fontSize: 16,
+    marginRight: 5,
     color: "#333",
   },
   selectedItem: {
