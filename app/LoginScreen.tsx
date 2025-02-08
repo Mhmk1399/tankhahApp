@@ -70,6 +70,7 @@ export default function LoginScreen() {
           };
 
           await AsyncStorage.setItem("token", JSON.stringify(tokenData));
+          console.log(tokenData)
           console.log("Token stored successfully with expiration!");
         } catch (error) {
           console.error("Error storing token:", error);

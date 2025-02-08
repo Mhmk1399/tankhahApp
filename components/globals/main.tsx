@@ -1,9 +1,10 @@
-import React, { useRef, useState } from "react";
+import React, { useEffect, useRef, useState } from "react";
 import { View, Text, StyleSheet, Animated, Pressable } from "react-native";
 import { MaterialCommunityIcons } from "@expo/vector-icons";
 import NotificationBox from "./notification";
 import PersianDate from "./date";
 import { FinanceDetailsModal } from "./FinanceDetailsModal";
+import AsyncStorage from "@react-native-async-storage/async-storage";
 
 interface FinanceBoxProps {
   title: string;
@@ -19,6 +20,11 @@ const FinanceBox: React.FC<FinanceBoxProps> = ({
 }) => {
   const [modalVisible, setModalVisible] = useState(false);
   const scaleAnim = useRef(new Animated.Value(1)).current;
+  const [walletData, setWalletData] = useState({
+    walletBalance: 0,
+    totalIncomes: 0,
+    totalOutcomes: 0,
+  });
 
   const onPressIn = () => {
     Animated.spring(scaleAnim, {
@@ -38,6 +44,34 @@ const FinanceBox: React.FC<FinanceBoxProps> = ({
     }).start();
     setModalVisible(true);
   };
+  const fetchWalletData = async () => {
+    try {
+      const token = await AsyncStorage.getItem("token");
+      if (!token) {
+        console.error("Token not found");
+        return;
+      }
+      const tokenData = JSON.parse(token);
+      const actualToken = tokenData.token;
+
+      const response = await fetch("https://tankhah.vercel.app/api/walet", {
+        headers: {
+          Authorization: `Bearer ${actualToken}`,
+        },
+      });
+
+      const data = await response.json();
+      if (response.ok) {
+        setWalletData(data);
+      }
+    } catch (error) {
+      console.error("Error fetching wallet data:", error);
+    }
+  };
+
+  useEffect(() => {
+    fetchWalletData();
+  }, []);
 
   return (
     <>
@@ -72,25 +106,59 @@ const FinanceBox: React.FC<FinanceBoxProps> = ({
 };
 
 const MainPage = () => {
+  const [walletData, setWalletData] = useState({
+    walletBalance: 0,
+    totalIncomes: 0,
+    totalOutcomes: 0
+  });
+
+  useEffect(() => {
+    fetchWalletData();
+  }, []);
+
+  const fetchWalletData = async () => {
+    const token = await AsyncStorage.getItem('token');
+    if (!token) {
+      console.error("Token not found");
+      return;
+    }
+    const tokenData = JSON.parse(token);
+    const actualToken = tokenData.token;
+    try {
+      const response = await fetch('https://tankhah.vercel.app/api/walet', {
+        headers: {
+          Authorization: `Bearer ${actualToken}`,
+        },
+      });
+
+      const data = await response.json();
+      if (response.ok) {
+        setWalletData(data);
+      }
+    } catch (error) {
+      console.error("Error fetching wallet data:", error);
+    }
+  };
+
   return (
     <>
       <PersianDate />
       <View style={styles.box}>
         <FinanceBox
           title="مانده وجه"
-          amount="2,500,000"
+          amount={walletData.walletBalance.toLocaleString("fa-IR")}
           icon="wallet"
           color="#fff"
         />
         <FinanceBox
-          title="خالص پرداخت ماهانه"
-          amount="5,800,000"
+          title="خالص دریافت ماهانه"
+          amount={walletData.totalIncomes.toLocaleString("fa-IR")}
           icon="cash-multiple"
           color="#fff"
         />
         <FinanceBox
-          title="مخارج طبقه‌بندی شده"
-          amount="1,200,000"
+          title="خالص پرداخت ماهانه"
+          amount={walletData.totalOutcomes.toLocaleString("fa-IR")}
           icon="chart-pie"
           color="#fff"
         />
@@ -99,7 +167,6 @@ const MainPage = () => {
     </>
   );
 };
-
 const styles = StyleSheet.create({
   box: {
     padding: 16,

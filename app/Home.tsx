@@ -121,15 +121,15 @@ const Home = () => {
 
       {renderComponent()}
 
-      <TouchableOpacity
+      {!isOpen && (<><TouchableOpacity
         style={styles.settingsButton}
         onPress={() => toggleSidebar(!isOpen)}
       >
         <Ionicons name="person-circle-outline" size={40} color="#4361ee" />
-      </TouchableOpacity>
-      <TouchableOpacity style={styles.notificationsButton}>
-        <MaterialIcons name="notifications" size={40} color="#4361ee" />
-      </TouchableOpacity>
+      </TouchableOpacity><TouchableOpacity style={styles.notificationsButton}>
+          <MaterialIcons name="notifications" size={40} color="#4361ee" />
+        </TouchableOpacity></>
+      )}
 
       <Animated.View
         style={[
@@ -176,8 +176,9 @@ const Home = () => {
 const styles = StyleSheet.create({
   container: {
     flex: 1,
-    backgroundColor: "white",
+    backgroundColor: "#F8FAFC",
     direction: "rtl",
+   
   },
   settingsButton: {
     position: "absolute",
@@ -189,6 +190,7 @@ const styles = StyleSheet.create({
     borderRadius: 25,
     justifyContent: "center",
     alignItems: "center",
+
   },
   notificationsButton: {
     position: "absolute",
@@ -200,77 +202,80 @@ const styles = StyleSheet.create({
     borderRadius: 25,
     justifyContent: "center",
     alignItems: "center",
+  
   },
   sidebar: {
     position: "absolute",
     left: 0,
     top: 0,
     bottom: 0,
-    width: SCREEN_WIDTH * 0.6,
+    width: SCREEN_WIDTH * 0.75,
     backgroundColor: "white",
     shadowColor: "#000",
-    shadowOffset: { width: -2, height: 0 },
+    shadowOffset: { width: 2, height: 0 },
     shadowOpacity: 0.25,
-    shadowRadius: 5,
-    elevation: 5,
+    shadowRadius: 8,
+    elevation: 8,
   },
   sidebarHeader: {
     direction: "rtl",
     flexDirection: "row",
     justifyContent: "space-between",
     alignItems: "center",
-    padding: 20,
+    padding: 24,
     borderBottomWidth: 1,
-    borderBottomColor: "#eee",
-    marginTop: 20,
-    marginBottom: 20,
+    borderBottomColor: "#E2E8F0",
+    marginTop: 24,
+    marginBottom: 16,
   },
   sidebarTitle: {
-    padding: 10,
+    padding: 12,
     direction: "rtl",
-    fontSize: 20,
-    fontWeight: "bold",
+    fontSize: 22,
+    fontWeight: "800",
     color: "#4361ee",
-    marginBottom: 30,
+    marginBottom: 24,
+    
   },
   menuContainer: {
     direction: "rtl",
     flex: 1,
-    gap: 10,
-    padding: 15,
+    padding: 20,
+    marginBottom: 80,
   },
   menuItem: {
     flexDirection: "row",
     alignItems: "center",
-    padding: 15,
-    borderRadius: 8,
-    marginBottom: 10,
-    marginLeft: 10,
-    gap: 5,
+    padding: 16,
+    borderRadius: 12,
+    marginBottom: 12,
+    backgroundColor: "#F8FAFC",
+
   },
   menuItemText: {
-    marginLeft: 15,
-    fontSize: 16,
-    color: Colors.light.text,
+    marginLeft: 16,
+    fontSize: 17,
+    fontWeight: "600",
+    color: "#1E293B",
+    marginRight: 5,
   },
   header: {
     flexDirection: "row",
     justifyContent: "space-between",
     alignItems: "center",
-    padding: 20,
-    backgroundColor: "transparent",
-    // elevation: 4,
+    padding: 24,
+    backgroundColor: "white",
     shadowColor: "#000",
     shadowOffset: { width: 0, height: 2 },
-    shadowOpacity: 0.2,
-    shadowRadius: 3,
+    shadowOpacity: 0.05,
+    shadowRadius: 6,
+    elevation: 2,
   },
   headerTitle: {
-    fontSize: 23,
-    fontWeight: "bold",
-    backgroundColor: "transparent",
+    fontSize: 26,
+    fontWeight: "800",
     marginTop: 14,
-    color: "#6c757d",
+    color: "#4361ee",
   },
 });
 

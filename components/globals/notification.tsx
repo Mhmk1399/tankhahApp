@@ -70,6 +70,7 @@ const styles = StyleSheet.create({
     shadowOpacity: 0.1,
     shadowRadius: 8,
     direction: "rtl",
+    marginBottom: 80,
   },
   notificationHeader: {
     flexDirection: "row",
